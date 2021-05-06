@@ -1,0 +1,283 @@
+---
+title: "MALL_REVIEW"
+author: "Bryan Jones"
+date: "5/4/2021"
+output: word_document
+---
+```{r}
+
+library(tidyverse)
+library(fs)
+install.packages('anomalize')
+library(anomalize)
+getwd()
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+customer_data <- read.csv("Mall_Customers.csv")
+```
+
+
+#1) Discuss Problem/Goal:: The mall customer dataset allows the mall and interested companies to track consumer descriptions and habbits to maximize earnings. Demographics and spending habbits can help the mall decide what are profitable buissnesses and who should they seek out when looking for buissness to occupy spaces. Meanwhile, buissness can determine if their product matches the demand and the audience based on the current habbits of the consumers.#2) Discuss where data retreieved from:The data was retreived from Kaggle.com
+
+#3) Identify code that you saved and imported: The dataset was downloaded off Kaggle and uploaded via read.csv.
+
+#4) Describe dataset: The dataset records the gender, customer id, age, annual income, and spending score of the customers at the mall.
+
+```{r}
+str(customer_data)
+```
+
+
+
+#5) Discuss errors: There are errors with the names of the columns. Most notably, "genre" needs to be changed to gender to correctly reflect the data. I would also rename the income and spending columns to be less confusing. I provided an example in rows 20-35. Based on the example, the author did not fix the col names. There are no spelling errors or missing values which can be checked using #summary function.
+#```{r}
+#colnames(Mall_data)
+#```
+```{r}
+colnames(customer_data)[colnames(customer_data)=='Genre']<-"Gender"
+colnames(customer_data)
+```
+
+#```{r}
+#colnames(Mall_data)[colnames(Mall_data)== "Annual.Income..k.."]<-"Income(Thousands)"
+#colnames(Mall_data)
+#```
+#```{r}
+#colnames(Mall_data)[colnames(Mall_data)== "Spending.Score..1.100."]<-"Spending_Score(1-100)"
+#colnames(Mall_data)
+#```
+##6) Discuss modeling: The data modeling is Kmeans clustering which clusters an unorganized dataset. This will help us group customers and find trends in the data.Clusters will be created by each col name. This will group the similiar customers to each other by each of the individual categories.
+
+```{r}
+head(customer_data, 5)
+```
+
+
+#provide information on dataset. Mean, SD, MAX, MIN
+```{r}
+summary(customer_data$Age)
+```
+
+
+#cluster by each col
+
+```{r}
+
+sd(customer_data$Age)
+summary(customer_data$Annual.Income..k..)
+
+sd(customer_data$Annual.Income..k..)
+
+summary<-summary(customer_data$Age)
+
+sd(customer_data$Spending.Score..1.100.)
+
+a=table(customer_data$Genre)
+
+barplot<-barplot(a,main="Using BarPlot to display Gender Comparision",
+       ylab="Count",
+       xlab="Gender",
+       col=rainbow(2),
+       legend=rownames(a))
+
+print(barplot)
+```
+
+
+#error did not run       
+#error pie3D not found 
+
+```{r}
+
+#install.packages("plotrix")  I installed using Tools menu
+library(plotrix)
+
+pct=round(a/sum(a)*100)
+lbs=paste(c("Female","Male")," ",pct,"%",sep=" ")
+library(plotrix)
+pie3D(a,labels=lbs,
+   main="Pie Chart Depicting Ratio of Female and Male")
+```
+
+
+#7) Produce and discuss output with visuals:  
+
+```{r}
+summary(customer_data$Age)
+hist(customer_data$Age,
+    col="blue",
+    main="Histogram to Show Count of Age Class",
+    xlab="Age Class",
+    ylab="Frequency",
+    labels=TRUE)
+```
+
+
+#shows frequency of people in age   
+```{r}
+boxplot(customer_data$Age,
+       col="red",
+       main="Boxplot for Descriptive Analysis of Age")
+```
+
+
+#error. Was col==ff0066 but changed to red to make it work.Shows Box and whiskers for age to dee distribution
+
+```{r}
+summary(customer_data$Annual.Income..k..)
+hist(customer_data$Annual.Income..k..,
+  col="#660033",
+  main="Histogram for Annual Income",
+  xlab="Annual Income Class",
+  ylab="Frequency",
+  labels=TRUE)
+```
+
+
+#display freq of annual income
+```{r}
+  
+plot(density(customer_data$Annual.Income..k..),
+    col="yellow",
+    main="Density Plot for Annual Income",
+    xlab="Annual Income Class",
+    ylab="Density")
+polygon(density(customer_data$Annual.Income..k..),
+        col="#ccff66")
+```
+
+#display density of annual income   
+```{r}
+summary(customer_data$Spending.Score..1.100.)
+
+```
+
+Min. 1st Qu. Median Mean 3rd Qu. Max. 
+## 1.00 34.75 50.00 50.20 73.00 99.00
+
+```{r}
+boxplot(customer_data$Spending.Score..1.100.,
+   horizontal=TRUE,
+   col="#990000",
+   main="BoxPlot for Descriptive Analysis of Spending Score")
+```
+
+
+#boxlpot to show distribution of density
+```{r}
+hist(customer_data$Spending.Score..1.100.,
+    main="HistoGram for Spending Score",
+    xlab="Spending Score Class",
+    ylab="Frequency",
+    col="#6600cc",
+    labels=TRUE)
+```
+   
+
+#display freq of spending score.    
+```{r}
+   # install.packages("purrr") installed using Tools menu
+library(purrr)
+
+set.seed(123)
+```
+
+# function to calculate total intra-cluster sum of square 
+```{r}
+
+iss <- function(k) {
+  kmeans(customer_data[,3:5],k,iter.max=100,nstart=100,algorithm="Lloyd" )$tot.withinss
+}
+k.values <- 1:10
+iss_values <- map_dbl(k.values, iss)
+plot(k.values, iss_values,
+    type="b", pch = 19, frame = FALSE, 
+    xlab="Number of clusters K",
+    ylab="Total intra-clusters sum of squares")
+    
+library(cluster) 
+library(gridExtra)
+library(grid)
+k2<-kmeans(customer_data[,3:5],2,iter.max=100,nstart=50,algorithm="Lloyd")
+s2<-plot(silhouette(k2$cluster,dist(customer_data[,3:5],"euclidean")))
+```
+
+#evals quality of clustering
+```{r}
+
+k3<-kmeans(customer_data[,3:5],3,iter.max=100,nstart=50,algorithm="Lloyd")
+s3<-plot(silhouette(k3$cluster,dist(customer_data[,3:5],"euclidean")))
+
+k4<-kmeans(customer_data[,3:5],4,iter.max=100,nstart=50,algorithm="Lloyd")
+s4<-plot(silhouette(k4$cluster,dist(customer_data[,3:5],"euclidean")))
+
+k5<-kmeans(customer_data[,3:5],5,iter.max=100,nstart=50,algorithm="Lloyd")
+s5<-plot(silhouette(k5$cluster,dist(customer_data[,3:5],"euclidean")))
+       
+k6<-kmeans(customer_data[,3:5],6,iter.max=100,nstart=50,algorithm="Lloyd")
+s6<-plot(silhouette(k6$cluster,dist(customer_data[,3:5],"euclidean")))
+
+k7<-kmeans(customer_data[,3:5],7,iter.max=100,nstart=50,algorithm="Lloyd")
+s7<-plot(silhouette(k7$cluster,dist(customer_data[,3:5],"euclidean")))
+
+k8<-kmeans(customer_data[,3:5],8,iter.max=100,nstart=50,algorithm="Lloyd")
+s8<-plot(silhouette(k8$cluster,dist(customer_data[,3:5],"euclidean")))
+
+k9<-kmeans(customer_data[,3:5],9,iter.max=100,nstart=50,algorithm="Lloyd")
+s9<-plot(silhouette(k9$cluster,dist(customer_data[,3:5],"euclidean")))
+
+k10<-kmeans(customer_data[,3:5],10,iter.max=100,nstart=50,algorithm="Lloyd")
+s10<-plot(silhouette(k10$cluster,dist(customer_data[,3:5],"euclidean")))
+```
+
+#visualize optimal # of cluster
+```{r}
+install.packages("NbClust")
+library(NbClust)
+install.packages("factoextra")
+library(factoextra)
+fviz_nbclust(customer_data[,3:5], kmeans, method = "silhouette")
+```
+```{r}
+set.seed(125)
+stat_gap <- clusGap(customer_data[,3:5], FUN = kmeans, nstart = 25,
+            K.max = 10, B = 50)
+fviz_gap_stat(stat_gap)
+
+k6<-kmeans(customer_data[,3:5],6,iter.max=100,nstart=50,algorithm="Lloyd")
+k6
+
+pcclust=prcomp(customer_data[,3:5],scale=FALSE) #principal component analysis
+summary(pcclust)
+pcclust$rotation[,1:2]
+```
+#visualize the clusters
+```{r}
+set.seed(1)
+ggplot(customer_data, aes(x =Annual.Income..k.., y = Spending.Score..1.100.)) + 
+  geom_point(stat = "identity", aes(color = as.factor(k6$cluster))) +
+  scale_color_discrete(name=" ",
+              breaks=c("1", "2", "3", "4", "5","6"),
+              labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5","Cluster 6")) +
+  ggtitle("Segments of Mall Customers", subtitle = "Using K-means Clustering")
+  
+  ggplot(customer_data, aes(x =Spending.Score..1.100., y =Age)) + 
+  geom_point(stat = "identity", aes(color = as.factor(k6$cluster))) +
+  scale_color_discrete(name=" ",
+                      breaks=c("1", "2", "3", "4", "5","6"),
+                      labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5","Cluster 6")) +
+  ggtitle("Segments of Mall Customers", subtitle = "Using K-means Clustering")
+  
+kCols=function(vec){cols=rainbow (length (unique (vec)))
+return (cols[as.numeric(as.factor(vec))])}
+digCluster<-k6$cluster; dignm<-as.character(digCluster); # K-means clusters
+plot(pcclust$x[,1:2], col =kCols(digCluster),pch =19,xlab ="K-means",ylab="classes")
+legend("bottomleft",unique(dignm),fill=unique(kCols(digCluster)))
+```
